@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"math"
+	"net/http"
 	"reflect"
 )
 
@@ -441,11 +444,174 @@ func main() {
 
 	fmt.Println("============ Looping! ============")
 	fmt.Println("********** Simple loops **********")
+	fmt.Println("loop 1: ")
 	for i := 0; i < 5; i++ {
 		fmt.Println((i))
 	}
+	fmt.Println("loop 2: ")
+	for i := 0; i < 5; i += 2 {
+		fmt.Println((i))
+	}
+	fmt.Println("loop 3: ")
+	for i, j := 0, 0; i < 5; i, j = i+1, j+2 {
+		fmt.Printf("i = %d; j = %d \n", i, j)
+	}
+	fmt.Println("loop 4: ")
+	for i := 0; i < 5; i++ {
+		fmt.Println((i))
+		// not recommend to mess around the counter lol
+		if i%2 == 0 {
+			i /= 2
+		} else {
+			i = 2*i + 1
+		}
+	}
+	fmt.Println("loop 5: ")
+	j := 0
+	for ; j < 5; j++ {
+		fmt.Println(j)
+	}
+	fmt.Println(j)
+	fmt.Println("loop 6:  while loop in go")
+	j = 0
+	for j < 5 {
+		fmt.Println(j)
+		j++
+	}
+	fmt.Println(j)
 
 	fmt.Println("********** Exiting early **********")
 
-	fmt.Println("********** Loop through collections **********")
+	fmt.Println("loop 7:  infinite loop (with conditional break)")
+	j = 0
+	for {
+		fmt.Println(j)
+		j++
+		if j == 5 {
+			break
+		}
+	}
+
+	fmt.Println("loop 8:  continue")
+	for i := 0; i < 10; i++ {
+		if i%2 == 0 {
+			continue
+		}
+		fmt.Println(i)
+	}
+
+	fmt.Println("loop 9:  nested loop")
+	for i := 0; i <= 3; i++ {
+		for j := 1; j <= 3; j++ {
+			fmt.Println(i * j)
+		}
+	}
+
+	fmt.Println("loop 10:  nested loop break failed")
+	for i := 0; i <= 3; i++ {
+		for j := 1; j <= 3; j++ {
+			fmt.Println((i * j))
+			if i*j >= 3 {
+				break // only break inner loop lol
+			}
+		}
+	}
+
+	fmt.Println("loop 10:  nested loop break success! with Label")
+Loop:
+	for i := 0; i <= 3; i++ {
+		for j := 1; j <= 3; j++ {
+			fmt.Println((i * j))
+			if i*j >= 3 {
+				break Loop
+			}
+		}
+	}
+
+	fmt.Println("********** Loop through collections **********") // only syntax for this lol
+	fmt.Println("loop 11: loop over slice")
+	loopSlice := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	fmt.Println(loopSlice)
+	for k, v := range loopSlice {
+		fmt.Printf("k = %d;  v = %d \n", k, v)
+	}
+
+	fmt.Println("loop 12: loop over map")
+	/*
+		defined above
+
+		statePopulations := make(map[string]int)
+		statePopulations = map[string]int{
+			"California":   39250017,
+			"Texas":        27862596,
+			"Florida":      20612439,
+			"New York":     19745289,
+			"Pennsylvania": 12802503,
+			"Illinois":     12801539,
+			"Ohio":         11614373,
+		}
+	*/
+	for state, population := range statePopulations {
+		fmt.Printf("state: %s;  population = %d \n", state, population)
+	}
+
+	fmt.Println("loop 13: loop over string")
+	loopString := "hello Go!"
+	for k, v := range loopString {
+		fmt.Printf("k = %v;  v = %v; string(v) = %v\n", k, v, string(v)) // v value is the unicode of each byte(char, note there is no data type "Char" in Go!)
+	}
+
+	fmt.Println("loop 14: loop over channel : TBD lol")
+
+	fmt.Println("loop 15: loop over map but only want key or value")
+	for state, _ := range statePopulations {
+		fmt.Printf("state = %s \n", state)
+	}
+	for _, population := range statePopulations {
+		fmt.Printf("population = %d \n", population)
+	}
+
+	fmt.Println("============ Flow Control: Defer, Panic, Recover ============")
+	fmt.Println("********** Defer **********")
+	// Note the defer follows the Lifo (last in first out); below will printed in the end and opposite order
+	defer fmt.Println("start")
+	defer fmt.Println("middle") // executed when the main has exit but before the main function return!
+	defer fmt.Println("end")
+	defer fmt.Println("Defer: example 1:")
+
+	fmt.Println("Defer: practical example:")
+	res, err := http.Get("http://www.google.com/robots.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	robots, err := ioutil.ReadAll(res.Body)
+	// very common pattern; be careful with loop!
+	defer res.Body.Close() //  i want to close but later (end of the main) , in case that i forget
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("robots: %s", robots)
+
+	start := "start"
+	defer fmt.Println(start) // will print start; the derfer will see the place to call but not the time when execute it! so it wont treated as execution after start = "end"
+	defer fmt.Println("Defer: example 3:")
+	start = "end"
+
+	fmt.Println("********** Panic **********")
+	seePanic := false
+	// Error handling: GO dosent have exception!
+	panicA, panicB := 1, 0
+	if seePanic {
+		ans := panicA / panicB // this line will return a panic - panic: runtime error: integer divide by zero
+		fmt.Println(ans)
+	}
+
+	seePanic = false
+	fmt.Println("start")
+	if seePanic {
+		panic("something bad happended")
+	}
+	fmt.Println("end")
+
+	fmt.Println("********** Recover **********")
 }
