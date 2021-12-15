@@ -598,6 +598,7 @@ Loop:
 	start = "end"
 
 	fmt.Println("********** Panic **********")
+	fmt.Println("Panic case 1: ")
 	seePanic := false
 	// Error handling: GO dosent have exception!
 	panicA, panicB := 1, 0
@@ -606,12 +607,26 @@ Loop:
 		fmt.Println(ans)
 	}
 
+	fmt.Println("Panic case 2: ")
 	seePanic = false
 	fmt.Println("start")
 	if seePanic {
 		panic("something bad happended")
 	}
 	fmt.Println("end")
+
+	fmt.Println("Panic case 3 practical: ")
+	seePanic = false
+	if seePanic {
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("Hello Go!"))
+		})
+		errCase3 := http.ListenAndServe(":8080", nil)
+
+		if errCase3 != nil {
+			panic(errCase3.Error())
+		}
+	}
 
 	fmt.Println("********** Recover **********")
 }
