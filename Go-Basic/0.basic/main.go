@@ -601,19 +601,24 @@ Loop:
 	fmt.Println("Panic case 1: ")
 	seePanic := false
 	// Error handling: GO dosent have exception!
-	panicA, panicB := 1, 0
 	if seePanic {
+		panicA, panicB := 1, 0
 		ans := panicA / panicB // this line will return a panic - panic: runtime error: integer divide by zero
 		fmt.Println(ans)
+	} else {
+		fmt.Println("set seePanic = true to see panic")
 	}
 
 	fmt.Println("Panic case 2: ")
 	seePanic = false
-	fmt.Println("start")
 	if seePanic {
+		fmt.Println("start")
 		panic("something bad happended")
+		fmt.Println("end")
+	} else {
+		fmt.Println("set seePanic = true to see panic")
 	}
-	fmt.Println("end")
+	
 
 	fmt.Println("Panic case 3 practical: ")
 	seePanic = false
@@ -626,7 +631,46 @@ Loop:
 		if errCase3 != nil {
 			panic(errCase3.Error())
 		}
+	} else {
+		fmt.Println("set seePanic = true to see panic")
+	}
+	
+	fmt.Println("Panic case 4 with defer: ")
+	seePanic = false
+	if seePanic {
+		fmt.Println("start")
+		defer fmt.Println("******Panic case 4******")
+		defer fmt.Println("this was derferred")
+		defer fmt.Println("******Panic case 4******")
+		panic("something bad happended") // Note of execute order: main function => defer statement => panic statement => handle return
+		fmt.Println("end")
+	} else {
+		fmt.Println("set seePanic = true to see panic")
 	}
 
 	fmt.Println("********** Recover **********")
+	fmt.Println("Panic and recover  case 4 with defer: ")
+	seePanic = true
+	if seePanic {
+		fmt.Println("start")
+		panicker()
+		fmt.Println("end")
+	} else {
+		fmt.Println("set seePanic = true to see panic")
+	}
+
+
+}
+
+func panicker() {
+	fmt.Println("about to panic")
+	defer func() {
+		if err := recover(); err != nil {// the  recover() said that teh application can be carried on the rest of the code outside of the func => it will continue up to panic and continue in main the rest
+			log.Println("Error: ", err) //  log will be print @ end of func panicker
+			//panic(err) // re-panic if we think that the err cant be handled 
+		}
+	} () // () is to call the temporal defined anonymous function
+
+	panic("something bad happended") // the panic triggered
+	fmt.Println("done panicking") // this one wont be called because the panic triggered to think the rest of lines in this function panicker shouldnet be run (Note but not after return => which are the lines outside the func in main)
 }
