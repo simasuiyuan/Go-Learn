@@ -618,7 +618,6 @@ Loop:
 	} else {
 		fmt.Println("set seePanic = true to see panic")
 	}
-	
 
 	fmt.Println("Panic case 3 practical: ")
 	seePanic = false
@@ -634,7 +633,7 @@ Loop:
 	} else {
 		fmt.Println("set seePanic = true to see panic")
 	}
-	
+
 	fmt.Println("Panic case 4 with defer: ")
 	seePanic = false
 	if seePanic {
@@ -659,18 +658,243 @@ Loop:
 		fmt.Println("set seePanic = true to see panic")
 	}
 
+	fmt.Println("============ Pointers! ============")
+	fmt.Println("********** Creating pointers **********")
+	fmt.Println("********** Dereferencing pointers **********")
+	fmt.Println("example 1 address explain:")
+	var pa int = 42
+	var pb *int = &pa // * declare that pb is hold the address ;  & address of
+	fmt.Println(&pa, pb)
+	fmt.Println(pa, *pb) // * : used to dereference the address to get the content: here we dereference the address pd to see what the content of that address in pb
+	pa = 27
+	fmt.Println(pa, *pb)
+	*pb = 14
+	fmt.Println(pa, *pb)
 
+	fmt.Println("example 2 work with pointer as variables (pointer arithmetic is no go for go (simplicity)) :")
+	pa2 := [3]int{1, 2, 3}
+	pb2 := &pa2[0] //&pa2[0] give the address where the 1st element of pa2 stroed
+	pc2 := &pa2[1] //&pa2[1] give the address where the 2nd element of pa2 stroed
+	//pc2 := &pa2[1]  - 4 to access next array element address is not a default allowable in Go (for simplicity)
+	fmt.Printf("pa2: %v; 1st element=%v @ %p; 2nd element=%v @ %p; type of pc2 is %T\n", pa2, *pb2, pb2, *pc2, pc2, pc2) // notice that the address of pc2 is highier than pb2 by 4 bytes; think about that: int32 => 4 bytes
+
+	fmt.Println("********** The new function **********")
+
+	fmt.Println("********** Working with nil **********")
+	fmt.Println("example 1:")
+	// var ms myStruct
+	// ms = myStruct{foo: 42}
+	var ms *myStruct
+	ms = new(myStruct) // or ms = &myStruct{foo: 42}
+	// (*ms).foo = 42     // dereference the ms then access the field
+	// fmt.Println(*ms)
+	ms.foo = 42 // the syntax above is the complete form, the ms.foo is working as same as (*ms).foo is because the complier help to handle this
+	fmt.Println(ms.foo)
+
+	fmt.Println("********** Types with internal pointers **********")
+	fmt.Println("example: array vs slice/map! literal vs reference type.\n  slice/map only holds/copy pointers to the same underlying data (will change the content that share all slice/map that point to the same reference/address)")
+
+	fmt.Println("============ Functions! ============")
+	fmt.Println("********** Basic syntax **********")
+	fmt.Println("********** Parameters **********")
+	fmt.Println("example 1:")
+	sayMessage(`this function is to print paragraph like this
+	hello Go!`)
+
+	fmt.Println("example 2: Notice the difference between passing variable and passing in pointer! if we changen reassign the variable name")
+	greeting := "Hello"
+	name := "stacey"
+	fmt.Println("call func sayGreetingPassVar(greeting, name string)")
+	sayGreetingPassVar(greeting, name)
+	fmt.Printf("name after the function call: %s\n", name)
+
+	fmt.Println("call func sayGreetingPassPointer(greeting, name *string)")
+	sayGreetingPassPointer(&greeting, &name)
+	fmt.Printf("name after the function call: %s\n", name)
+
+	fmt.Println("example 3 variadic parameters:")
+	sum("i am msg!", 1, 2, 3, 4, 5)
+
+	fmt.Println("********** Return values **********")
+	fmt.Println("example 1 function with return:")
+	s := sumWithReturn("i am msg!", 1, 2, 3, 4, 5) // Note the s here is a COPY of return result
+	fmt.Println("Then sum is ", s)
+
+	fmt.Println("example 3 function with return Address (Pointer):")
+	swp := sumWithReturnPointer("i am msg!", 1, 2, 3, 4, 5) // Note the swp here is a pointer that referencing to the same address as result
+	fmt.Println("Then sum is ", swp)
+
+	fmt.Println("example 3 function with Name return syntax form Go:")
+	s = sumWithNameReturn("i am msg!", 1, 2, 3, 4, 5) // Note the swp here is a pointer that referencing to the same address as result
+	fmt.Println("Then sum is ", s)
+
+	fmt.Println("example 4 function with multiple returns:")
+	fm, err := divide(5.0, 0.0)
+	if err != nil {
+		fmt.Println(err)
+		// return
+	}
+	fmt.Println(fm)
+
+	fmt.Println("********** Anonymous functions **********")
+	// declare the function on fly
+	fmt.Println("example 1 simplest case:")
+	func() {
+		fmt.Println("Hello Go!")
+	}()
+
+	fmt.Println("example 2 usage case for loop (Async):")
+	for i := 0; i < 5; i++ {
+		func(i int) {
+			fmt.Println(i)
+		}(i)
+	}
+
+	fmt.Println("********** Functions as types **********")
+
+	fmt.Println("example 3 Assign variable as function:")
+	f1 := func() {
+		fmt.Println("Hello Go!")
+	}
+	f1()
+
+	var f2 func() = func() {
+		fmt.Println("Hello Go!")
+	}
+	f2()
+
+	fmt.Println("example 4 more complex case:")
+	var divideFunc func(float64, float64) (float64, error)
+	divideFunc = func(a, b float64) (float64, error) {
+		if b == 0.0 {
+			return 0.0, fmt.Errorf("Cannot divide by zero")
+		} else {
+			return a / b, nil
+		}
+	}
+	dResult, err := divideFunc(5.0, 3.0)
+	if err != nil {
+		fmt.Println(err)
+		// return
+	}
+	fmt.Println(dResult)
+
+	fmt.Println("********** Methods **********")
+	fmt.Println("example 1 (value receiver):")
+	g := greeter{
+		greeting: "Hello",
+		name:     "Go",
+	}
+	g.greet()
+	fmt.Println("The new name is", g.name)
+
+	fmt.Println("example 2 Pointer receiver:")
+	g2 := greeter{
+		greeting: "Hello",
+		name:     "Go",
+	}
+	g2.greetPointerReceiver()
+	fmt.Println("The new name is", g2.name)
+
+}
+
+type greeter struct {
+	greeting string
+	name     string
+}
+
+func (g greeter) greet() { // note the g greeter; the greet is a function that added to a type (g) that allows the g to invoke (g.greet) <= method
+	// g greet is the value receiver
+	fmt.Println(g.greeting, g.name)
+	g.name = "" // the g here is just a copy of the greeter type, wont effect the the value outside this method
+}
+
+func (g *greeter) greetPointerReceiver() { // note the g greeter; the greet is a function that added to a type (g) that allows the g to invoke (g.greet) <= method
+	// g greet is the value receiver
+	fmt.Println(g.greeting, g.name)
+	g.name = "" // the g here is just a copy of the greeter type, wont effect the the value outside this method
+}
+
+func divide(a, b float64) (float64, error) {
+	if b == 0.0 {
+		return 0.0, fmt.Errorf("Cannot divide by zero")
+	}
+	return a / b, nil
+}
+
+//variadic parameters
+// Note: the variadic parameters have to be the last parameters that be passed in!
+func sum(msg string, values ...int) { //  Take note the arguments parsers (parameters) here! ...int is the variadic parameter, which read all teh last argument that passed inm and wrap up to a **slice** that has name of variable we defined as "values"
+	fmt.Println(msg)
+	fmt.Println(values)
+	result := 0
+	for _, v := range values {
+		result += v
+	}
+	fmt.Println("Then sum is ", result)
+}
+
+func sumWithReturn(msg string, values ...int) int {
+	fmt.Println(msg)
+	fmt.Println(values)
+	result := 0
+	for _, v := range values {
+		result += v
+	}
+	fmt.Println("Then sum is ", result)
+	return result
+}
+
+func sumWithReturnPointer(msg string, values ...int) *int {
+	fmt.Println(msg)
+	fmt.Println(values)
+	result := 0
+	for _, v := range values {
+		result += v
+	}
+	fmt.Println("Then sum is ", result)
+	return &result // teh go wont discard the return but promote it as a variable into heap memory
+}
+
+func sumWithNameReturn(msg string, values ...int) (result int) {
+	fmt.Println(msg)
+	fmt.Println(values)
+	for _, v := range values {
+		result += v
+	}
+	fmt.Println("Then sum is ", result)
+	return
+}
+
+func sayGreetingPassVar(greeting, name string) { // note, here greeting and name are sharing same type, so w declare tgt. we also also can define separate: func sayGreetingPassVar(greeting string, name string){}
+	fmt.Println(greeting, name)
+	name = "Ted"
+	fmt.Printf("name inside the function after re-assignment: %s\n", name)
+}
+
+func sayGreetingPassPointer(greeting, name *string) { // here teh greeting and name are pointer to string, where we pass the address that pointing to those to location
+	fmt.Println(*greeting, *name) // to access the content we dereferencing them
+	*name = "Ted"
+	fmt.Printf("name inside the function after re-assignment: %s\n", *name)
+}
+
+func sayMessage(msg string) {
+	fmt.Printf("%s\n", msg)
+}
+
+type myStruct struct {
+	foo int
 }
 
 func panicker() {
 	fmt.Println("about to panic")
 	defer func() {
-		if err := recover(); err != nil {// the  recover() said that teh application can be carried on the rest of the code outside of the func => it will continue up to panic and continue in main the rest
+		if err := recover(); err != nil { // the  recover() said that teh application can be carried on the rest of the code outside of the func => it will continue up to panic and continue in main the rest
 			log.Println("Error: ", err) //  log will be print @ end of func panicker
-			//panic(err) // re-panic if we think that the err cant be handled 
+			//panic(err) // re-panic if we think that the err cant be handled
 		}
-	} () // () is to call the temporal defined anonymous function
+	}() // () is to call the temporal defined anonymous function
 
 	panic("something bad happended") // the panic triggered
-	fmt.Println("done panicking") // this one wont be called because the panic triggered to think the rest of lines in this function panicker shouldnet be run (Note but not after return => which are the lines outside the func in main)
+	fmt.Println("done panicking")    // this one wont be called because the panic triggered to think the rest of lines in this function panicker shouldnet be run (Note but not after return => which are the lines outside the func in main)
 }
